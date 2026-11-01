@@ -36,6 +36,13 @@ const LOGO = 'public/brand/lint-logo.png';
 const BG = { r: 15, g: 15, b: 15, alpha: 1 };
 const wordmark = await sharp(LOGO).trim({ threshold: 20 }).png().toBuffer();
 
+// Header/footer wordmark: white letters on a transparent background.
+// The logo's brightness becomes the alpha channel, so it sits on any dark colour.
+const { data: alpha, info } = await sharp(wordmark).resize({ height: 96 }).greyscale().raw().toBuffer({ resolveWithObject: true });
+await sharp({ create: { width: info.width, height: info.height, channels: 3, background: '#ffffff' } })
+  .joinChannel(alpha, { raw: { width: info.width, height: info.height, channels: 1 } })
+  .png().toFile('public/brand/lint-wordmark.png');
+
 // Share image: the text design above, with the real logo bottom-left
 const ogLogo = await sharp(wordmark).resize({ height: 64 }).png().toBuffer();
 await sharp(Buffer.from(og.replace(/<text x="80" y="570"[^]*?<\/text>/, '')))
