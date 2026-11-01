@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /verify/
+
+Sitemap: https://lintlab.in/sitemap-index.xml

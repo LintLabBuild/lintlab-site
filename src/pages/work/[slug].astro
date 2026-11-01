@@ -1,0 +1,68 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import company from '../../data/company.json';
+import { statusLabel, formatDate } from '../../lib/labels';
+
+export async function getStaticPaths() {
+  const work = await getCollection('work');
+  return work.map((item) => ({ params: { slug: item.id }, props: { item } }));
+}
+
+const { item } = Astro.props;
+const d = item.data;
+const { Content } = await render(item);
+
+const services = (await getCollection('services')).filter((s) => s.data.proof.includes(item.id));
+const others = (await getCollection('work', (w) => w.id !== item.id)).sort((a, b) => a.data.order - b.data.order).slice(0, 3);
+
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: d.title,
+  description: d.summary,
+  url: new URL(`/work/${item.id}/`, company.url).href,
+  dateModified: d.updated.toISOString(),
+  keywords: [d.area, ...d.stack].join(', '),
+  creator: { '@id': `${company.url}/#org` },
+}];
+---
+<Base
+  title={d.title}
+  description={d.summary.length > 160 ? d.summary.slice(0, 157).replace(/\s+\S*$/, '') + '…' : d.summary}
+  crumbs={[{ name: 'Work', path: '/work/' }, { name: d.title, path: `/work/${item.id}/` }]}
+  modified={d.updated}
+  jsonLd={jsonLd}
+>
+  <article>
+    <header class="page-hero">
+      <span class:list={['pill', d.status]}>{d.statusNote ?? statusLabel[d.status]}</span>
+      <p class="eyebrow" style="margin-top:16px">{d.area}</p>
+      <h1>{d.title}</h1>
+      <p class="lede">{d.summary}</p>
+      <div class="meta-line">
+        {d.stack.length > 0 && <span>{d.stack.join(' · ')}</span>}
+        <span>updated {formatDate(d.updated)}</span>
+      </div>
+      {d.link && <div class="ctas"><a class="btn primary" href={d.link} rel="noopener">▸ Open it</a></div>}
+    </header>
+    <div class="prose"><Content /></div>
+  </article>
+
+  {services.length > 0 && (
+    <section aria-labelledby="svc-h">
+      <h2 id="svc-h">Services this backs up</h2>
+      <div class="grid">
+        {services.map((s) => (
+          <a class="card" href={`/services/#${s.id}`}><h3>{s.data.title}</h3><p>{s.data.summary}</p></a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section aria-labelledby="more-h">
+    <h2 id="more-h">More work</h2>
+    <div class="grid three">{others.map((w) => <WorkCard item={w} />)}</div>
+  </section>
+</Base>

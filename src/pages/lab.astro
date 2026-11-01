@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+import company from '../data/company.json';
+
+const faq = [
+  { q: 'Is Lint Lab paid?', a: 'The lab itself is unpaid and free. There are no fees, ever. When paid client work comes in, active lab members are the first people we offer it to, and that work is paid.' },
+  { q: 'Do I get a certificate?', a: `Yes. When you finish your tasks you get an experience certificate from Lint, an Udyam-registered company (${company.registration.number}). Each certificate has an ID that anyone can check on lintlab.in/verify.` },
+  { q: 'Do I need experience?', a: 'No. You need curiosity and the habit of finishing things. We match tasks to your level.' },
+  { q: 'Can I join remotely?', a: `Yes. We are based in ${company.address.city}, and most work happens online.` },
+  { q: 'What happens if I get busy?', a: 'That is normal. We keep a short list of active members and stay in regular touch. If you go quiet for a term you move to alumni, and you can come back when you are ready.' },
+];
+
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+}];
+---
+<Base
+  title="Lint Lab: cybersecurity projects for students, with certificate"
+  description="Lint Lab is a free program for curious students in Gwalior and online: work on real cybersecurity and reverse engineering projects, earn a verifiable experience certificate, and get called in for paid work."
+  crumbs={[{ name: 'Lint Lab', path: '/lab/' }]}
+  jsonLd={jsonLd}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// lint lab</p>
+    <h1>Build real security projects. <span class="u">Get called in.</span></h1>
+    <p class="lede">Lint Lab is how students work with us. Not a course and not a paid
+      internship scheme: a seat at the bench next to people building real security products.</p>
+    <div class="ctas"><a class="btn primary" href="#apply">▸ Apply</a></div>
+  </section>
+
+  <section aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <ol class="steps">
+      <li class="step"><h3>Learn</h3><p>We teach hands-on skills: firmware RE, web security, secure systems.</p></li>
+      <li class="step"><h3>Build</h3><p>Work on our live projects with a mentor and honest feedback.</p></li>
+      <li class="step"><h3>Certify</h3><p>Finish your tasks and get a verifiable experience certificate.</p></li>
+      <li class="step"><h3>Stay close</h3><p>Active members stay in our network and in regular contact.</p></li>
+      <li class="step"><h3>Get called in</h3><p>When paid work lands, the people who've shown up get it.</p></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="tracks-h">
+    <h2 id="tracks-h">Tracks</h2>
+    <div class="grid">
+      <a class="card" href="/work/router-reverse-engineering/"><span class="k">hardware</span><h3>Reverse engineering</h3><p>UART, SPI flash dumps, Ghidra and MIPS on real devices.</p></a>
+      <a class="card" href="/services/#security-review"><span class="k">appsec</span><h3>Web security</h3><p>Finding and fixing the bugs that get real sites breached, on our own systems.</p></a>
+      <a class="card" href="/work/lint-contest-platform/"><span class="k">systems</span><h3>Secure platforms</h3><p>Sandboxing, queues, databases and scaling on our contest platform.</p></a>
+      <a class="card" href="/work/fly-connectome/"><span class="k">research</span><h3>AI and research</h3><p>Connectome simulation, reservoir computing and retrieval systems.</p></a>
+    </div>
+  </section>
+
+  <section aria-labelledby="faq-h">
+    <h2 id="faq-h">Questions</h2>
+    <dl class="facts">
+      {faq.map((f) => <><dt>{f.q}</dt><dd>{f.a}</dd></>)}
+    </dl>
+  </section>
+
+  <section id="apply" aria-labelledby="apply-h">
+    <h2 id="apply-h">Apply</h2>
+    <p class="section-lede">Fill this in and it opens a ready-to-send email to {company.email}.
+      Nothing is stored on this site.</p>
+    <form class="form" data-mailto={company.email} data-subject="Lint Lab application">
+      <div class="field"><label for="a-name">Your name</label><input id="a-name" name="Name" required></div>
+      <div class="field"><label for="a-college">College, branch and year</label><input id="a-college" name="College"></div>
+      <div class="field">
+        <label for="a-track">Track you want</label>
+        <select id="a-track" name="Track">
+          <option>Reverse engineering</option><option>Web security</option><option>Secure platforms</option><option>AI and research</option><option>Not sure yet</option>
+        </select>
+      </div>
+      <div class="field"><label for="a-built">Something you've built or broken (link welcome)</label><textarea id="a-built" name="Built or broken" rows="4" required></textarea></div>
+      <button class="btn primary" type="submit">▸ Open email</button>
+    </form>
+  </section>
+
+  <script>import '../scripts/mailto-form';</script>
+</Base>

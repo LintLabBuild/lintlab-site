@@ -1,0 +1,27 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { formatDate } from '../../lib/labels';
+
+const posts = (await getCollection('posts', (p) => !p.data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<Base
+  title="Writing: notes on security, reverse engineering and building"
+  description="Write-ups and notes from Lint on cybersecurity, firmware reverse engineering, secure systems and running a student security lab."
+  crumbs={[{ name: 'Writing', path: '/writing/' }]}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// writing</p>
+    <h1>Notes from the bench</h1>
+    <p class="lede">What we're learning, building and breaking. Subscribe with <a href="/rss.xml">RSS</a>.</p>
+    <ul class="post-list">
+      {posts.map((p) => (
+        <li>
+          <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date)}</time>
+          <h3><a href={`/writing/${p.id}/`}>{p.data.title}</a></h3>
+          <p>{p.data.description}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>

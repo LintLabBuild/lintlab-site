@@ -1,0 +1,186 @@
+---
+// Shared page shell: SEO head, structured data, header and footer.
+import company from '../data/company.json';
+import '../styles/global.css';
+
+interface Crumb { name: string; path: string }
+interface Props {
+  title: string;          // page title without the brand
+  description: string;    // 120-160 characters works best in search results
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
+  crumbs?: Crumb[];       // breadcrumb trail after Home
+  jsonLd?: object[];      // extra structured data for this page
+  published?: Date;
+  modified?: Date;
+}
+
+const { title, description, ogType = 'website', noindex = false, crumbs = [], jsonLd = [], published, modified } = Astro.props;
+
+const isHome = Astro.url.pathname === '/';
+const fullTitle = isHome ? `${company.name} · ${title}` : `${title} · ${company.name}`;
+const canonical = new URL(Astro.url.pathname, company.url).href;
+const ogImage = new URL('/og.png', company.url).href;
+const place = `${company.address.city}, ${company.address.region}, ${company.address.country}`;
+
+const nav = [
+  { href: '/work/', label: 'Work' },
+  { href: '/services/', label: 'Services' },
+  { href: '/lab/', label: 'Lint Lab' },
+  { href: '/writing/', label: 'Writing' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+];
+const current = Astro.url.pathname;
+
+// The organisation, described once for search engines and reused on every page.
+const organization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': `${company.url}/#org`,
+  name: company.name,
+  alternateName: company.alternateName,
+  url: company.url,
+  logo: `${company.url}/icon-512.png`,
+  email: company.email,
+  description: company.description,
+  foundingDate: company.founded,
+  founder: { '@type': 'Person', name: company.founder.name, jobTitle: company.founder.role },
+  numberOfEmployees: { '@type': 'QuantitativeValue', value: company.teamSize },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: `${company.address.locality}, ${company.address.city}`,
+    addressRegion: company.address.region,
+    postalCode: company.address.postalCode,
+    addressCountry: company.address.countryCode,
+  },
+  areaServed: 'IN',
+  identifier: { '@type': 'PropertyValue', propertyID: 'Udyam Registration Number', value: company.registration.number },
+  knowsAbout: ['Cybersecurity', 'Reverse engineering', 'Firmware analysis', 'Application security', 'Secure exam environments', 'System design'],
+  sameAs: Object.values(company.social),
+};
+const website = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${company.url}/#website`,
+  url: company.url,
+  name: company.name,
+  publisher: { '@id': `${company.url}/#org` },
+};
+const breadcrumbs = crumbs.length ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [{ name: 'Home', path: '/' }, ...crumbs].map((c, i) => ({
+    '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.path, company.url).href,
+  })),
+} : null;
+const structured = [organization, website, breadcrumbs, ...jsonLd].filter(Boolean);
+---
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{fullTitle}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  {noindex && <meta name="robots" content="noindex">}
+  <meta name="theme-color" content="#0a0e0c">
+  <meta name="color-scheme" content="dark">
+  <meta name="geo.region" content="IN-MP">
+  <meta name="geo.placename" content={company.address.city}>
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="alternate" type="application/rss+xml" title={`${company.name} writing`} href="/rss.xml">
+  <link rel="sitemap" href="/sitemap-index.xml">
+
+  <meta property="og:site_name" content={company.name}>
+  <meta property="og:type" content={ogType}>
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={ogImage}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content={`${company.name}: ${company.tagline}, ${place}`}>
+  <meta property="og:locale" content="en_IN">
+  {published && <meta property="article:published_time" content={published.toISOString()}>}
+  {modified && <meta property="article:modified_time" content={modified.toISOString()}>}
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+  {structured.map((item) => <script type="application/ld+json" set:html={JSON.stringify(item)} />)}
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="bar">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label={`${company.name} home`}>&gt;&nbsp;<b>LINT</b><span class="cursor" aria-hidden="true"></span></a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">menu</button>
+      <nav id="site-nav" aria-label="Main">
+        {nav.map((item) => (
+          <a href={item.href} aria-current={current.startsWith(item.href) ? 'page' : undefined}>{item.label}</a>
+        ))}
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    {crumbs.length > 0 && (
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/">~</a>
+        {crumbs.map((c, i) => (
+          <>
+            <span aria-hidden="true">/</span>
+            {i === crumbs.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.path}>{c.name}</a>}
+          </>
+        ))}
+      </nav>
+    )}
+    <slot />
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p class="brand">&gt;&nbsp;<b>LINT</b>_</p>
+        <p class="muted">{company.tagline}. {place}.</p>
+        <p class="muted small">Udyam registered · {company.registration.number}</p>
+      </div>
+      <div>
+        <p class="footer-h">Explore</p>
+        {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+      </div>
+      <div>
+        <p class="footer-h">Elsewhere</p>
+        <a href={`mailto:${company.email}`}>{company.email}</a>
+        <a href={company.social.linkedin} rel="noopener me" target="_blank">LinkedIn ↗</a>
+        <a href={company.social.github} rel="noopener me" target="_blank">GitHub ↗</a>
+        <a href={company.social.instagram} rel="noopener me" target="_blank">Instagram ↗</a>
+        <a href="/rss.xml">RSS</a>
+      </div>
+    </div>
+    <div class="wrap footer-base">
+      <span>© {new Date().getFullYear()} {company.name}. All rights reserved.</span>
+      <span><a href="/verify/">Verify a certificate</a> · <a href="/.well-known/security.txt">security.txt</a></span>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    const btn = document.querySelector<HTMLButtonElement>('.menu-btn');
+    const nav = document.getElementById('site-nav');
+    btn?.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      nav?.classList.toggle('open', !open);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { statusLabel } from '../lib/labels';
+
+interface Props { item: CollectionEntry<'work'>; wide?: boolean }
+const { item, wide = false } = Astro.props;
+const d = item.data;
+---
+<a class:list={['card', { wide }]} href={`/work/${item.id}/`}>
+  <span class:list={['pill', d.status]}>{d.statusNote ?? statusLabel[d.status]}</span>
+  <span class="k">{d.area}</span>
+  <h3>{d.title}</h3>
+  <p>{d.summary}</p>
+  {d.stack.length > 0 && <span class="stack">{d.stack.join(' · ')}</span>}
+</a>

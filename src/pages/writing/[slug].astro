@@ -1,0 +1,52 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import company from '../../data/company.json';
+import { formatDate } from '../../lib/labels';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', (p) => !p.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const d = post.data;
+const { Content } = await render(post);
+const url = new URL(`/writing/${post.id}/`, company.url).href;
+
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.date.toISOString(),
+  dateModified: (d.updated ?? d.date).toISOString(),
+  author: { '@type': 'Person', name: d.author },
+  publisher: { '@id': `${company.url}/#org` },
+  mainEntityOfPage: url,
+  image: `${company.url}/og.png`,
+  keywords: d.tags.join(', '),
+}];
+---
+<Base
+  title={d.title}
+  description={d.description}
+  ogType="article"
+  published={d.date}
+  modified={d.updated ?? d.date}
+  crumbs={[{ name: 'Writing', path: '/writing/' }, { name: d.title, path: `/writing/${post.id}/` }]}
+  jsonLd={jsonLd}
+>
+  <article>
+    <header class="page-hero">
+      <h1>{d.title}</h1>
+      <p class="lede">{d.description}</p>
+      <div class="meta-line">
+        <span>{d.author}</span>
+        <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        {d.tags.length > 0 && <span>{d.tags.map((t) => `#${t.replace(/\s+/g, '-')}`).join(' ')}</span>}
+      </div>
+    </header>
+    <div class="prose"><Content /></div>
+  </article>
+</Base>

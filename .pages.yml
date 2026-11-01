@@ -1,0 +1,130 @@
+# Pages CMS config: edit the site's content in a web form at https://app.pagescms.org
+# (sign in with GitHub, open LintLabBuild/lintlab-site). Saving commits to main,
+# and the deploy workflow publishes the change in about a minute.
+media:
+  input: public/images
+  output: /images
+
+content:
+  - name: work
+    label: Work (products and research)
+    type: collection
+    path: src/content/work
+    filename: "{fields.title}.md"
+    view:
+      fields: [title, status, updated]
+      primary: title
+      sort: [title]
+    fields:
+      - { name: title, label: Title, type: string, required: true }
+      - { name: summary, label: Summary (1-2 sentences, used in search results), type: text, required: true }
+      - name: status
+        label: Status
+        type: select
+        required: true
+        options:
+          values: [live, prototype, in-progress, research]
+      - { name: statusNote, label: Status note (optional), type: string }
+      - { name: area, label: Area (e.g. "security · ed-tech"), type: string, required: true }
+      - { name: stack, label: Stack, type: string, list: true }
+      - { name: order, label: Order (lower shows first), type: number }
+      - { name: featured, label: Show on home page, type: boolean }
+      - { name: link, label: Link (optional), type: string }
+      - { name: updated, label: Last updated, type: date, required: true }
+      - { name: body, label: Write-up, type: rich-text }
+
+  - name: services
+    label: Services
+    type: collection
+    path: src/content/services
+    filename: "{fields.title}.md"
+    fields:
+      - { name: title, label: Title, type: string, required: true }
+      - { name: summary, label: Summary, type: text, required: true }
+      - { name: order, label: Order, type: number }
+      - { name: deliverables, label: What the client gets, type: string, list: true }
+      - { name: proof, label: Proof (work file names, e.g. securecode), type: string, list: true }
+      - { name: body, label: Details, type: rich-text }
+
+  - name: posts
+    label: Writing
+    type: collection
+    path: src/content/posts
+    filename: "{fields.title}.md"
+    view:
+      fields: [title, date, draft]
+      primary: title
+      sort: [date]
+    fields:
+      - { name: title, label: Title, type: string, required: true }
+      - { name: description, label: Description (shown in search results), type: text, required: true }
+      - { name: date, label: Date, type: date, required: true }
+      - { name: updated, label: Updated, type: date }
+      - { name: tags, label: Tags, type: string, list: true }
+      - { name: author, label: Author, type: string }
+      - { name: draft, label: Draft (hidden from the site), type: boolean }
+      - { name: body, label: Post, type: rich-text }
+
+  - name: company
+    label: Company facts
+    type: file
+    path: src/data/company.json
+    format: json
+    fields:
+      - { name: name, label: Name, type: string }
+      - { name: alternateName, label: Alternate name, type: string }
+      - { name: tagline, label: Tagline, type: string }
+      - { name: description, label: Description, type: text }
+      - { name: url, label: Website, type: string }
+      - { name: email, label: Public email, type: string }
+      - { name: founded, label: Founded, type: string }
+      - name: founder
+        label: Founder
+        type: object
+        fields:
+          - { name: name, label: Name, type: string }
+          - { name: role, label: Role, type: string }
+      - { name: teamSize, label: Team size, type: number }
+      - name: registration
+        label: Registration
+        type: object
+        fields:
+          - { name: authority, label: Authority, type: string }
+          - { name: type, label: Type, type: string }
+          - { name: number, label: Udyam number, type: string }
+          - { name: registeredOn, label: Registered on, type: string }
+          - { name: organisation, label: Organisation, type: string }
+          - { name: nic, label: NIC activity, type: string }
+          - { name: verifyUrl, label: Verify URL, type: string }
+      - name: address
+        label: Public address (no street or phone)
+        type: object
+        fields:
+          - { name: locality, label: Locality, type: string }
+          - { name: city, label: City, type: string }
+          - { name: region, label: State, type: string }
+          - { name: regionCode, label: State code, type: string }
+          - { name: postalCode, label: PIN, type: string }
+          - { name: country, label: Country, type: string }
+          - { name: countryCode, label: Country code, type: string }
+      - name: social
+        label: Social links
+        type: object
+        fields:
+          - { name: linkedin, label: LinkedIn, type: string }
+          - { name: github, label: GitHub, type: string }
+          - { name: instagram, label: Instagram, type: string }
+
+  - name: certificates
+    label: Certificates
+    type: file
+    path: src/data/certificates.json
+    format: json
+    list: true
+    fields:
+      - { name: id, label: Certificate ID (e.g. LINT-2026-001), type: string, required: true }
+      - { name: name, label: Student name, type: string, required: true }
+      - { name: program, label: Program, type: string, required: true }
+      - { name: project, label: Project, type: string, required: true }
+      - { name: from, label: From (e.g. Nov 2026), type: string, required: true }
+      - { name: to, label: To, type: string, required: true }

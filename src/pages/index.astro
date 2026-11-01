@@ -1,0 +1,130 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import WorkCard from '../components/WorkCard.astro';
+import Terminal from '../components/Terminal.astro';
+import company from '../data/company.json';
+
+const featured = (await getCollection('work', (w) => w.data.featured)).sort((a, b) => a.data.order - b.data.order);
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+const posts = (await getCollection('posts', (p) => !p.data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 2);
+---
+<Base
+  title="Security R&D lab in Gwalior, India"
+  description="Lint is a cybersecurity R&D lab in Gwalior, India: firmware reverse engineering, web application security reviews, secure exam and coding environments, and scalable system design."
+>
+  <section class="hero">
+    <p class="prompt"><span class="g">lint@gwalior</span>:~$ whoami</p>
+    <h1>We break systems<br>to <span class="u">understand</span> them.</h1>
+    <p class="lede">Lint is a security research and development lab in {company.address.city}, India.
+      We reverse engineer firmware, build secure exam and coding environments, and design
+      systems that hold up under attack and under load. <b>Our own products are our proof of work.</b></p>
+    <div class="hero-meta">
+      <span class="tag"><span class="d">▸</span>{company.address.city}, MP, India</span>
+      <span class="tag"><span class="d">▸</span>Udyam registered MSME</span>
+      <span class="tag"><span class="d">▸</span>Security · RE · systems</span>
+      <span class="tag"><span class="d">▸</span>Student lab</span>
+    </div>
+    <div class="ctas">
+      <a class="btn primary" href="/services/">▸ Work with us</a>
+      <a class="btn" href="/lab/">Join Lint Lab</a>
+      <a class="btn" href="/work/">See our work</a>
+    </div>
+  </section>
+
+  <section aria-labelledby="what-h">
+    <p class="eyebrow">// what we do</p>
+    <h2 id="what-h">Research first. Products as proof.</h2>
+    <p class="section-lede">We're an R&amp;D company, not a product page. Four things we go deep on:</p>
+    <div class="pillars">
+      <div class="pillar"><h3>Reverse engineering</h3><p>From the circuit board to the binary: UART, SPI flash, Ghidra, and what the firmware really does.</p></div>
+      <div class="pillar"><h3>Application security</h3><p>Testing web apps the way attackers do, with written permission and fixes you can ship.</p></div>
+      <div class="pillar"><h3>Secure environments</h3><p>Sandboxed code execution and locked-down exam setups that hold when strangers try to break them.</p></div>
+      <div class="pillar"><h3>System design</h3><p>Backends built for load and attack from day one, not patched later.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="work-h">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">// proof of work</p>
+        <h2 id="work-h">Things we built and broke ourselves</h2>
+      </div>
+      <a class="btn" href="/work/">All work →</a>
+    </div>
+    <p class="section-lede">We don't have a logo wall yet, and we won't fake one. Instead, here
+      is what we're building. We'll always tell you what's live, what's a prototype and
+      what's research.</p>
+    <div class="grid three">
+      {featured.map((item) => <WorkCard item={item} />)}
+    </div>
+  </section>
+
+  <section aria-labelledby="shell-h">
+    <p class="eyebrow">// poke around</p>
+    <h2 id="shell-h">Or ask the shell</h2>
+    <Terminal />
+  </section>
+
+  <section aria-labelledby="svc-h">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">// for companies</p>
+        <h2 id="svc-h">What we can do for you</h2>
+      </div>
+      <a class="btn" href="/services/">Services →</a>
+    </div>
+    <div class="grid">
+      {services.map((s) => (
+        <a class="card" href={`/services/#${s.id}`}>
+          <h3>{s.data.title}</h3>
+          <p>{s.data.summary}</p>
+          <span class="more">details →</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section aria-labelledby="lab-h">
+    <p class="eyebrow">// lint lab</p>
+    <h2 id="lab-h">Students with the spark build with us</h2>
+    <p class="section-lede">While we build, curious students join in. They work on the same
+      industry-style projects, earn an experience certificate from a registered company,
+      and are first in line when paid work comes in.</p>
+    <ol class="steps" aria-label="How Lint Lab works">
+      <li class="step"><h3>Learn</h3><p>Hands-on: firmware RE, web security, real systems.</p></li>
+      <li class="step"><h3>Build</h3><p>Tasks on our live projects, matched to your level.</p></li>
+      <li class="step"><h3>Certify</h3><p>A verifiable experience certificate from Lint.</p></li>
+      <li class="step"><h3>Stay close</h3><p>Active members stay in our network.</p></li>
+      <li class="step"><h3>Get called in</h3><p>Paid work goes to people who've shown up.</p></li>
+    </ol>
+    <div class="ctas"><a class="btn primary" href="/lab/">▸ How to join</a></div>
+  </section>
+
+  {posts.length > 0 && (
+    <section aria-labelledby="writing-h">
+      <p class="eyebrow">// writing</p>
+      <h2 id="writing-h">Notes from the bench</h2>
+      <ul class="post-list">
+        {posts.map((p) => (
+          <li>
+            <time datetime={p.data.date.toISOString()}>{p.data.date.toISOString().slice(0, 10)}</time>
+            <h3><a href={`/writing/${p.id}/`}>{p.data.title}</a></h3>
+            <p>{p.data.description}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section aria-labelledby="talk-h">
+    <p class="eyebrow">// contact</p>
+    <h2 id="talk-h">Have a system you want looked at?</h2>
+    <p class="section-lede">Security review, a device to open up, or an exam environment to lock
+      down. Tell us what it is and we'll tell you honestly whether we can help.</p>
+    <div class="ctas">
+      <a class="btn primary" href="/contact/">▸ Get in touch</a>
+      <a class="btn" href={`mailto:${company.email}`}>{company.email}</a>
+    </div>
+  </section>
+</Base>

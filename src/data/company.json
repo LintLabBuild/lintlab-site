@@ -1,0 +1,37 @@
+{
+  "name": "Lint",
+  "alternateName": "Lint Lab",
+  "tagline": "Security R&D lab",
+  "description": "Lint is a security research and development lab in Gwalior, India. We reverse engineer firmware, build secure exam and coding environments, and design systems that hold up under attack and load. Our own products are our proof of work.",
+  "url": "https://lintlab.in",
+  "email": "hello@lintlab.in",
+  "founded": "2026-10-11",
+  "founder": {
+    "name": "Vaibhav Bansal",
+    "role": "Founder"
+  },
+  "teamSize": 3,
+  "registration": {
+    "authority": "Ministry of Micro, Small and Medium Enterprises, Government of India",
+    "type": "Udyam registered micro enterprise",
+    "number": "UDYAM-MP-20-0123418",
+    "registeredOn": "2026-10-25",
+    "organisation": "Sole proprietorship",
+    "nic": "62011 · Writing, modifying and testing computer programs",
+    "verifyUrl": "https://udyamregistration.gov.in/Udyam_Verify.aspx"
+  },
+  "address": {
+    "locality": "Morar",
+    "city": "Gwalior",
+    "region": "Madhya Pradesh",
+    "regionCode": "MP",
+    "postalCode": "474006",
+    "country": "India",
+    "countryCode": "IN"
+  },
+  "social": {
+    "linkedin": "https://www.linkedin.com/company/lint-build",
+    "github": "https://github.com/LintLabBuild",
+    "instagram": "https://instagram.com/vaibhav_labs"
+  }
+}
