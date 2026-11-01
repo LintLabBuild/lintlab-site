@@ -24,8 +24,13 @@ the security. We wanted a platform we could put under real exam load and still t
 
 ## What it proves
 
-- **Secure code execution.** Untrusted code runs in locked-down containers with
-  resource limits.
+- **Secure code execution.** Untrusted code in Python, JavaScript and C++ runs in
+  locked-down containers with resource limits.
+- **Exam integrity.** Exams can require Safe Exam Browser, and the platform watches for
+  paste and other signs of outside help.
+- **Attacked on purpose.** About 150 automated security tests try to break it on every
+  change: students grabbing more power, reading other people's code, leaking hidden test
+  cases, or reaching past the exam inside Safe Exam Browser.
 - **System design under load.** Queues, caching and connection pooling sized for a
   whole class submitting in the last minute of a contest.
 - **Role and tenant isolation.** Students, faculty and admins only see what they should.

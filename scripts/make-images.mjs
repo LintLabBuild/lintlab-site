@@ -31,9 +31,23 @@ const icon = (size) => `
   <rect x="32" y="40" width="18" height="6" rx="2" fill="#4ade80"/>
 </svg>`;
 
-await sharp(Buffer.from(og)).png().toFile('public/og.png');
+// The owner's logo (public/brand/lint-logo.png), trimmed to the wordmark.
+const LOGO = 'public/brand/lint-logo.png';
+const BG = { r: 15, g: 15, b: 15, alpha: 1 };
+const wordmark = await sharp(LOGO).trim({ threshold: 20 }).png().toBuffer();
+
+// Share image: the text design above, with the real logo bottom-left
+const ogLogo = await sharp(wordmark).resize({ height: 64 }).png().toBuffer();
+await sharp(Buffer.from(og.replace(/<text x="80" y="570"[^]*?<\/text>/, '')))
+  .composite([{ input: ogLogo, left: 80, top: 528 }])
+  .png().toFile('public/og.png');
+
+// App icons: the wordmark centred on a square with some breathing room
 for (const [name, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['apple-touch-icon.png', 180]]) {
-  await sharp(Buffer.from(icon(size))).png().toFile(`public/${name}`);
+  const inner = await sharp(wordmark).resize({ width: Math.round(size * 0.78) }).png().toBuffer();
+  await sharp({ create: { width: size, height: size, channels: 4, background: BG } })
+    .composite([{ input: inner, gravity: 'centre' }])
+    .png().toFile(`public/${name}`);
 }
 // favicon.ico: a 32x32 PNG wrapped in a minimal ICO header
 const png = await sharp(Buffer.from(icon(32))).png().toBuffer();
