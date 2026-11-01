@@ -3,338 +3,590 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lint</title>
+<title>Lint — Software for coding contests and exams</title>
+<meta name="description" content="Lint is a software company in Gwalior, India. Our first product is a coding contest and proctored exam platform for colleges and companies.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Lint — Software for coding contests and exams">
+<meta property="og:description" content="A coding contest and proctored exam platform for colleges and companies, built by Lint in Gwalior, India.">
+<meta property="og:url" content="https://lintlab.in/">
+<meta name="theme-color" content="#0f3d2e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f7a4f'/%3E%3Cpath d='M11 8v16h10' stroke='white' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
-  /* Layout: single-column terminal document — a fixed top command-bar, stacked
-     "sections as shell blocks", committed dark CRT world (single theme by design). */
   :root{
-    --bg:#0a0e0c;            /* near-black with a faint green bias */
-    --panel:#0f1512;
-    --panel-2:#121a16;
-    --line:#1e2a24;
-    --fg:#d6e2da;            /* phosphor-tinted off-white */
-    --muted:#7d9088;
-    --accent:#4ade80;        /* phosphor green */
-    --accent-dim:#2b8f57;
-    --amber:#f0b429;         /* secondary signal */
-    --red:#ff5a5f;
-    color-scheme: dark;
+    --bg:#ffffff;
+    --bg-soft:#f5f7f6;
+    --surface:#ffffff;
+    --line:#e2e8e5;
+    --ink:#0e1a15;
+    --text:#2f3d37;
+    --muted:#5d6d66;
+    --brand:#0f7a4f;
+    --brand-strong:#0b5e3c;
+    --brand-soft:#e7f4ee;
+    --on-brand:#ffffff;
+    --dark:#0f1f19;
+    --dark-text:#d7e3dd;
+    --shadow:0 1px 2px rgba(14,26,21,.04),0 8px 24px rgba(14,26,21,.06);
+    --radius:14px;
+    --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
-    --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    color-scheme:light dark;
   }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0c1411;
+      --bg-soft:#111b17;
+      --surface:#131f1a;
+      --line:#22322b;
+      --ink:#eef4f1;
+      --text:#c9d6d0;
+      --muted:#93a59d;
+      --brand:#34c27f;
+      --brand-strong:#5fd69a;
+      --brand-soft:#15291f;
+      --on-brand:#05140d;
+      --dark:#08100d;
+      --dark-text:#c9d6d0;
+      --shadow:none;
+    }
+  }
+
   *{box-sizing:border-box}
-  body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;
-    -webkit-font-smoothing:antialiased}
-  /* subtle scanline/vignette atmosphere, non-distracting */
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-    background:radial-gradient(120% 80% at 50% -10%,rgba(74,222,128,.06),transparent 60%);}
-  .wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;
-    padding-inline:20px;padding-block:0}
-  a{color:var(--accent);text-decoration:none}
-  a:hover{text-decoration:underline}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  html{scroll-behavior:smooth;scroll-padding-top:80px}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+    font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  img,svg{display:block;max-width:100%}
+  a{color:var(--brand)}
+  :focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:4px}
+  h1,h2,h3{color:var(--ink);line-height:1.2;margin:0;text-wrap:balance}
+  p{margin:0}
+  .container{max-width:1120px;margin:0 auto;padding-inline:20px}
+  .skip{position:absolute;left:-999px;top:8px}
+  .skip:focus{left:8px;background:var(--surface);padding:8px 12px;z-index:100}
 
-  /* top command bar */
-  .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;
-    background:rgba(10,14,12,.82);backdrop-filter:blur(8px);
+  /* ---------- header ---------- */
+  .site-header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);
     border-bottom:1px solid var(--line)}
-  .bar .wrap{display:flex;align-items:center;gap:16px;
-    padding-block:12px;flex-wrap:wrap}
-  .brand{font-family:var(--mono);font-weight:600;letter-spacing:.02em;font-size:16px;
-    color:var(--fg);white-space:nowrap}
-  .brand b{color:var(--accent)}
-  .cursor{display:inline-block;width:.6ch;height:1.05em;background:var(--accent);
-    translate:0 .14em;margin-left:.1ch;animation:blink 1.1s steps(1) infinite}
-  @keyframes blink{50%{opacity:0}}
-  .bar nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap;
-    font-family:var(--mono);font-size:13px}
-  .bar nav a{color:var(--muted)}
-  .bar nav a:hover{color:var(--accent);text-decoration:none}
+  .header-row{display:flex;align-items:center;gap:24px;height:68px}
+  .logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);
+    font-weight:700;font-size:21px;letter-spacing:-.01em}
+  .logo-mark{width:30px;height:30px;flex:none}
+  .nav{display:flex;align-items:center;gap:26px;margin-left:auto}
+  .nav a{color:var(--text);text-decoration:none;font-size:15px;font-weight:500}
+  .nav a:hover{color:var(--brand)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font:600 15px/1 var(--sans);padding:13px 20px;border-radius:10px;text-decoration:none;
+    border:1px solid transparent;transition:background .15s,border-color .15s,color .15s}
+  .btn-primary{background:var(--brand);color:var(--on-brand)}
+  .btn-primary:hover{background:var(--brand-strong)}
+  .btn-ghost{border-color:var(--line);color:var(--ink);background:var(--surface)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
+  .nav .btn{padding:10px 16px;font-size:14px}
+  .nav .btn-primary{color:var(--on-brand)}
+  .nav .btn-primary:hover{color:var(--on-brand)}
 
-  section{padding-block:60px;border-bottom:1px solid var(--line)}
-  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--accent-dim);margin:0 0 18px}
-  h1,h2,h3{text-wrap:balance;margin:0}
+  /* CSS-only mobile menu */
+  .menu{display:none;margin-left:auto;position:relative}
+  .menu summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:10px;
+    padding:8px 12px;font-weight:600;font-size:14px;color:var(--ink);background:var(--surface)}
+  .menu summary::-webkit-details-marker{display:none}
+  .menu[open] summary{border-color:var(--brand)}
+  .menu-panel{position:absolute;right:0;top:calc(100% + 8px);width:min(260px,calc(100vw - 40px));
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);
+    padding:8px;display:flex;flex-direction:column}
+  .menu-panel a{padding:11px 12px;border-radius:8px;color:var(--ink);text-decoration:none;font-weight:500}
+  .menu-panel a:hover{background:var(--bg-soft)}
+  @media (max-width:860px){.nav{display:none}.menu{display:block}}
 
-  /* hero */
-  .hero{padding-block:72px 64px}
-  .prompt{font-family:var(--mono);font-size:clamp(13px,3.5vw,15px);color:var(--muted);
-    margin:0 0 20px}
-  .prompt .g{color:var(--accent)}
-  h1{font-family:var(--mono);font-weight:600;letter-spacing:-.01em;
-    font-size:clamp(34px,8vw,68px);line-height:1.02}
-  h1 .u{color:var(--accent)}
-  .lede{font-size:clamp(16px,2.4vw,20px);color:var(--fg);max-width:60ch;
-    margin:26px 0 0}
-  .lede b{color:var(--fg)}
-  .hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;
-    font-family:var(--mono);font-size:12px}
-  .tag{border:1px solid var(--line);background:var(--panel);color:var(--muted);
-    padding:6px 10px;border-radius:4px}
-  .tag .d{color:var(--accent);margin-right:6px}
+  /* ---------- hero ---------- */
+  .hero{padding:84px 0 88px;background:
+    radial-gradient(900px 420px at 85% -10%,var(--brand-soft),transparent 70%),var(--bg)}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--brand);margin-bottom:18px}
+  .eyebrow::before{content:"";width:18px;height:2px;background:currentColor;border-radius:2px}
+  .hero h1{font-size:clamp(34px,5.4vw,56px);letter-spacing:-.025em;font-weight:700}
+  .hero h1 em{font-style:normal;color:var(--brand)}
+  .hero .lede{font-size:clamp(17px,2vw,19px);color:var(--muted);margin-top:22px;max-width:56ch}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
+  .hero-facts{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:34px;padding:0;list-style:none;
+    font-size:14px;color:var(--muted)}
+  .hero-facts li{display:flex;align-items:center;gap:8px}
+  .hero-facts svg{width:16px;height:16px;color:var(--brand)}
 
-  .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
-  .btn{font-family:var(--mono);font-size:14px;padding:12px 18px;border-radius:6px;
-    border:1px solid var(--line);background:var(--panel);color:var(--fg);
-    display:inline-flex;align-items:center;gap:8px;cursor:pointer}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06130c;
-    font-weight:600}
-  .btn.primary:hover{text-decoration:none;filter:brightness(1.08)}
-  .btn:hover{text-decoration:none;border-color:var(--accent-dim)}
+  /* illustrative product window (no real data) */
+  .window{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    box-shadow:0 30px 60px -20px rgba(14,26,21,.22),var(--shadow);overflow:hidden;min-width:0}
+  .win-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);
+    background:var(--bg-soft);font-size:13px;color:var(--muted)}
+  .dots{display:flex;gap:6px;margin-right:6px}
+  .dots i{width:10px;height:10px;border-radius:50%;background:var(--line);display:block}
+  .win-bar .lock{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--brand);font-weight:600}
+  .win-bar .lock svg{width:14px;height:14px}
+  .win-body{display:grid;grid-template-columns:.9fr 1.1fr}
+  .win-q{padding:18px;border-right:1px solid var(--line);font-size:13px;color:var(--muted);min-width:0}
+  .win-q b{display:block;color:var(--ink);font-size:14px;margin-bottom:8px}
+  .bar-line{height:7px;border-radius:4px;background:var(--line);margin:9px 0}
+  .win-code{padding:16px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.75;color:var(--text);
+    background:var(--bg);min-width:0;overflow:hidden;white-space:pre}
+  .win-code .k{color:var(--brand)}
+  .win-code .c{color:var(--muted)}
+  .win-foot{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-top:1px solid var(--line);
+    background:var(--bg-soft)}
+  .chip{font-size:12px;font-weight:500;padding:5px 10px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface);color:var(--text);display:inline-flex;align-items:center;gap:6px}
+  .chip.ok{border-color:color-mix(in srgb,var(--brand) 45%,var(--line));color:var(--brand)}
+  .chip.ok::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  @media (max-width:960px){.hero-grid{grid-template-columns:1fr;gap:48px}}
+  @media (max-width:480px){.win-body{grid-template-columns:1fr}.win-q{border-right:0;border-bottom:1px solid var(--line)}}
 
-  h2{font-family:var(--mono);font-weight:600;font-size:clamp(22px,4vw,30px)}
-  .section-lede{color:var(--muted);max-width:62ch;margin:14px 0 0;font-size:16px}
+  /* ---------- sections ---------- */
+  section{padding:96px 0}
+  .alt{background:var(--bg-soft);border-block:1px solid var(--line)}
+  .section-head{max-width:680px;margin-bottom:48px}
+  .section-head h2{font-size:clamp(28px,3.6vw,40px);letter-spacing:-.02em;font-weight:700}
+  .section-head p{margin-top:14px;font-size:18px;color:var(--muted)}
+  @media (max-width:640px){section{padding:68px 0}.hero{padding:56px 0 64px}}
 
-  /* project / feature grid */
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:30px}
-  @media(max-width:620px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;
-    padding:20px;min-width:0;display:flex;flex-direction:column;gap:10px}
-  .card.wide{grid-column:1 / -1;border-color:var(--accent-dim);
-    background:linear-gradient(180deg,rgba(74,222,128,.05),transparent 70%),var(--panel)}
-  .card.wide h3{font-size:20px}
-  .card.wide p{font-size:15.5px;max-width:72ch}
-  .card .k{font-family:var(--mono);font-size:12px;letter-spacing:.06em;
-    text-transform:uppercase;color:var(--accent-dim)}
-  .card h3{font-family:var(--mono);font-size:17px;font-weight:600}
-  .card p{margin:0;color:var(--muted);font-size:14.5px}
-  .card .stack{font-family:var(--mono);font-size:12px;color:var(--fg);
-    opacity:.75;margin-top:auto;padding-top:6px}
-  .pill{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:999px;
-    align-self:flex-start}
-  .pill.live{background:rgba(74,222,128,.12);color:var(--accent);
-    border:1px solid var(--accent-dim)}
-  .pill.wip{background:rgba(240,180,41,.1);color:var(--amber);
-    border:1px solid #6b561a}
-  .pill.research{background:rgba(214,226,218,.06);color:var(--muted);
-    border:1px solid var(--line)}
+  /* products */
+  .products{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+  .product{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:32px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0}
+  .product-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .product-icon{width:48px;height:48px;border-radius:12px;background:var(--brand-soft);color:var(--brand);
+    display:grid;place-items:center;flex:none}
+  .product-icon svg{width:24px;height:24px}
+  .label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .product h3{font-size:24px;letter-spacing:-.01em}
+  .product > p{color:var(--muted);font-size:16.5px;max-width:62ch}
+  .ticks{list-style:none;padding:0;margin:22px 0 28px;display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}
+  .ticks li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--text)}
+  .ticks svg{width:18px;height:18px;color:var(--brand);flex:none;margin-top:3px}
+  .product .actions{margin-top:auto;display:flex;gap:12px;flex-wrap:wrap}
+  .product.soon{background:transparent;border-style:dashed;box-shadow:none;justify-content:center}
+  .product.soon .product-icon{background:var(--bg-soft);color:var(--muted)}
+  .product.soon h3{font-size:20px}
+  .product.soon p{color:var(--muted);font-size:15px;margin-top:10px}
+  @media (max-width:860px){.products{grid-template-columns:1fr}}
+  @media (max-width:560px){.ticks{grid-template-columns:1fr}.product{padding:24px}}
 
-  /* how it works — the real sequence, numbered because it is one */
-  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
-  @media(max-width:760px){.steps{grid-template-columns:1fr 1fr}}
-  @media(max-width:440px){.steps{grid-template-columns:1fr}}
-  .step{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
-    padding:18px;min-width:0}
-  .step .n{font-family:var(--mono);font-size:12px;color:var(--accent-dim)}
-  .step h3{font-family:var(--mono);font-size:15px;font-weight:600;margin:8px 0 6px}
-  .step p{margin:0;color:var(--muted);font-size:13.5px}
+  /* features */
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .feature{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px;min-width:0}
+  .feature .product-icon{width:42px;height:42px;border-radius:10px;margin-bottom:18px}
+  .feature .product-icon svg{width:21px;height:21px}
+  .feature h3{font-size:18px;margin-bottom:8px}
+  .feature p{color:var(--muted);font-size:15px}
+  @media (max-width:900px){.features{grid-template-columns:1fr 1fr}}
+  @media (max-width:600px){.features{grid-template-columns:1fr}}
 
-  /* honest block */
-  .note{background:var(--panel);border:1px solid var(--line);
-    border-left:3px solid var(--amber);border-radius:6px;padding:22px 24px;
-    margin-top:28px}
-  .note p{margin:0 0 10px;color:var(--fg);font-size:15px}
-  .note p:last-child{margin-bottom:0}
-  .note .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--amber)}
+  /* audiences */
+  .audiences{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .audience{border:1px solid var(--line);border-radius:var(--radius);padding:32px;background:var(--surface);min-width:0}
+  .audience h3{font-size:22px;margin:6px 0 10px}
+  .audience > p{color:var(--muted)}
+  .audience ul{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-direction:column;gap:12px}
+  .audience li{display:flex;gap:10px;font-size:15px}
+  .audience li svg{width:18px;height:18px;color:var(--brand);flex:none;margin-top:3px}
+  @media (max-width:760px){.audiences{grid-template-columns:1fr}.audience{padding:24px}}
+
+  /* about */
+  .about{display:grid;grid-template-columns:1.2fr .8fr;gap:56px;align-items:start}
+  .about-copy p{font-size:17px;color:var(--text);margin-bottom:16px;max-width:62ch}
+  .about-copy p:last-child{margin-bottom:0}
+  .facts{display:grid;grid-template-columns:auto 1fr;gap:10px 20px;margin-top:28px;font-size:15px;
+    border-top:1px solid var(--line);padding-top:22px}
+  .facts dt{color:var(--muted)}
+  .facts dd{margin:0;color:var(--ink);font-weight:500}
+  .person{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}
+  .avatar{width:72px;height:72px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+    display:grid;place-items:center;font-weight:700;font-size:24px;margin-bottom:16px}
+  .person h3{font-size:19px}
+  .person .role{color:var(--muted);font-size:15px;margin-top:2px}
+  .person p.bio{margin-top:14px;font-size:15px;color:var(--text)}
+  .person .social{display:flex;gap:10px;margin-top:18px}
+  @media (max-width:860px){.about{grid-template-columns:1fr;gap:36px}}
 
   /* contact */
-  .contact{display:flex;flex-direction:column;gap:18px;align-items:flex-start}
-  .mail{font-family:var(--mono);font-size:clamp(18px,4.5vw,26px);color:var(--accent);
-    background:var(--panel);border:1px solid var(--line);border-radius:8px;
-    padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    max-width:100%;word-break:break-all}
-  .copy{font-family:var(--mono);font-size:12px;color:var(--muted);
-    border:1px solid var(--line);background:var(--panel-2);padding:7px 12px;
-    border-radius:5px;cursor:pointer;white-space:nowrap}
-  .copy:hover{color:var(--accent);border-color:var(--accent-dim)}
-  .links{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:14px}
+  .cta{background:var(--dark);color:var(--dark-text);border-radius:20px;padding:56px;
+    display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+  .cta h2{color:#fff;font-size:clamp(28px,3.6vw,40px);letter-spacing:-.02em}
+  .cta p{margin-top:14px;font-size:17px;color:var(--dark-text);max-width:52ch}
+  .cta-side{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+  .mail{font-size:clamp(20px,2.6vw,26px);font-weight:600;color:#fff;text-decoration:none;
+    border-bottom:2px solid #34c27f;padding-bottom:2px;word-break:break-all}
+  .mail:hover{color:#5fd69a}
+  .cta .btn-primary{background:#34c27f;color:#05140d}
+  .cta .btn-primary:hover{background:#5fd69a}
+  .cta .social a{color:var(--dark-text);border-color:rgba(255,255,255,.18)}
+  .cta .social a:hover{color:#fff;border-color:#34c27f}
+  @media (max-width:860px){.cta{grid-template-columns:1fr;padding:36px 24px;gap:28px}}
 
-  footer{padding-block:40px;color:var(--muted);font-family:var(--mono);font-size:12px;
-    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
-    border-bottom:none}
-  @media(prefers-reduced-motion:reduce){.cursor{animation:none}}
+  .social{display:flex;gap:10px;flex-wrap:wrap}
+  .social a{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);display:grid;
+    place-items:center;color:var(--text);text-decoration:none}
+  .social a:hover{color:var(--brand);border-color:var(--brand)}
+  .social svg{width:18px;height:18px}
+
+  /* footer */
+  .site-footer{border-top:1px solid var(--line);padding:56px 0 32px;font-size:15px}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
+  .foot-grid h4{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:600}
+  .foot-grid ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .foot-grid a{color:var(--text);text-decoration:none}
+  .foot-grid a:hover{color:var(--brand)}
+  .foot-about p{color:var(--muted);margin-top:14px;max-width:36ch}
+  .foot-base{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:48px;
+    padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+  @media (max-width:860px){.foot-grid{grid-template-columns:1fr 1fr}.foot-about{grid-column:1 / -1}}
 </style>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+</head>
+<body>
 
-<header class="bar">
-  <div class="wrap">
-    <span class="brand">&gt;&nbsp;<b>LINT</b>_</span>
-    <nav>
-      <a href="#build">What we build</a>
-      <a href="#how">How it works</a>
-      <a href="#join">Join</a>
-      <a href="#contact">Contact</a>
+<!-- Reusable icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8-7 9.5-4-1.5-7-5.1-7-9.5V6l7-3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2.2 2.2L15.5 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V8a4 4 0 018 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-org" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="16" width="6" height="5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="16" width="6" height="5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v4M6 16v-4h12v4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 01-8 0V4zM8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 13v4M8.5 20h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-test" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 001.8 3h10.4a2 2 0 001.8-3l-5-9V3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 15h9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-linkedin" viewBox="0 0 24 24"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM3 9.75h4v11H3v-11zM9.5 9.75h3.8v1.5h.05c.53-1 1.84-2.05 3.78-2.05 4.04 0 4.79 2.66 4.79 6.12v5.43h-4v-4.82c0-1.15-.02-2.63-1.6-2.63-1.6 0-1.85 1.25-1.85 2.55v4.9h-4v-11z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path fill="currentColor" d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M11 8v16h10" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="logo" href="#top" aria-label="Lint home">
+      <svg class="logo-mark" style="color:var(--brand)"><use href="#i-logo"/></svg>
+      Lint
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#products">Products</a>
+      <a href="#why">Why Lint</a>
+      <a href="#solutions">Solutions</a>
+      <a href="#about">About</a>
+      <a class="btn btn-primary" href="#contact">Contact us</a>
     </nav>
+    <details class="menu">
+      <summary aria-label="Open menu">Menu</summary>
+      <div class="menu-panel">
+        <a href="#products">Products</a>
+        <a href="#why">Why Lint</a>
+        <a href="#solutions">For colleges</a>
+        <a href="#companies">For companies</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact us</a>
+      </div>
+    </details>
   </div>
 </header>
 
-<div class="wrap">
+<main id="main">
 
-  <section class="hero">
-    <p class="prompt"><span class="g">lint@gwalior</span>:~$ whoami</p>
-    <h1>We break systems<br>to <span class="u">understand</span> them.</h1>
-    <p class="lede">Lint is a small, student-run tech studio in Gwalior. We do hands-on
-      R&amp;D in security, hardware and web, and we train students on real projects along
-      the way. <b>We're early, and we build in the open.</b></p>
-    <div class="hero-meta">
-      <span class="tag"><span class="d">▸</span>Gwalior, India</span>
-      <span class="tag"><span class="d">▸</span>Founded 2026</span>
-      <span class="tag"><span class="d">▸</span>Student-run</span>
-      <span class="tag"><span class="d">▸</span>R&amp;D · training</span>
-    </div>
-    <div class="ctas">
-      <a class="btn primary" href="#join">▸ Join the studio</a>
-      <a class="btn" href="#build">See what we build</a>
-    </div>
-  </section>
-
-  <section id="build">
-    <p class="eyebrow">// what we build</p>
-    <h2>Real projects, not slideware</h2>
-    <p class="section-lede">Everything here is something we're actually working on. Some
-      of it runs today, some is in progress, some is research. We'll tell you which is
-      which.</p>
-    <div class="grid">
-
-      <article class="card wide">
-        <span class="pill research">research · simulation running</span>
-        <span class="k">neuro-AI · reservoir computing · robotics</span>
-        <h3>A fly brain driving a real body</h3>
-        <p>Our own research. We run the full fruit-fly connectome (MaleCNS v1.0,
-          about 166,700 neurons, nothing trained) in simulation, wired to a physics body.
-          It already reacts to what it sees and hears and moves that body, for example
-          running from looming motion. Next we want to use it as a reservoir for reservoir
-          computing, then move it onto hardware: real sensor input and a physical body
-          driven by servo motors.</p>
-        <span class="stack">Connectome · reservoir computing · MuJoCo · FlyGym · servos</span>
-      </article>
-
-      <article class="card">
-        <span class="pill wip">working prototype</span>
-        <span class="k">web · platform</span>
-        <h3>Lint Contest Platform</h3>
-        <p>A coding practice and contest platform — problems, a sandboxed code runner,
-          contests and a leaderboard, with student, faculty and admin roles. It works, but
-          it still breaks under load because of a database connection bug we're fixing, so
-          it isn't public yet.</p>
-        <span class="stack">Next.js · PostgreSQL · Redis · Docker</span>
-      </article>
-
-      <article class="card">
-        <span class="pill wip">in progress</span>
-        <span class="k">security · ed-tech</span>
-        <h3>SecureCode</h3>
-        <p>A secure-coding assessment platform (built for Smart India Hackathon 2026).
-          The plan is to use AI to review student code for vulnerabilities, explain the
-          fix, and help grade — inside a locked-down exam environment.</p>
-        <span class="stack">Assessment · proctoring · AI review</span>
-      </article>
-
-      <article class="card">
-        <span class="pill wip">in progress</span>
-        <span class="k">hardware · firmware RE</span>
-        <h3>Router reverse engineering</h3>
-        <p>Reverse-engineering a proprietary router (Beetel 777VR1) with no datasheet —
-          UART console, SPI flash dumps, Ghidra. We've mapped its firmware's LED control
-          surface and are now tracing it down to the raw GPIO registers.</p>
-        <span class="stack">UART · SPI · binwalk · Ghidra · MIPS</span>
-      </article>
-
-      <article class="card">
-        <span class="pill research">research</span>
-        <span class="k">AI · RAG</span>
-        <h3>Campus help-desk</h3>
-        <p>A question-answering assistant for college departments: pull scattered
-          department information into one place and answer student queries over it with a
-          retrieval pipeline. Exploring it as a product for colleges.</p>
-        <span class="stack">RAG · retrieval · LLM</span>
-      </article>
-
-    </div>
-  </section>
-
-  <section id="how">
-    <p class="eyebrow">// how it works</p>
-    <h2>Learn on real work. Get paid when it's paid.</h2>
-    <p class="section-lede">Lint runs as a studio, not a course. You join, you work on
-      live projects, and you grow into the paid work as it comes in.</p>
-    <div class="steps">
-      <div class="step">
-        <span class="n">01</span>
-        <h3>Learn</h3>
-        <p>We teach hands-on skills — firmware RE, web security, building real apps.</p>
+  <!-- Hero -->
+  <section class="hero" id="top">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Software for technical assessment</p>
+        <h1>Coding contests and exams you can <em>trust</em>.</h1>
+        <p class="lede">Lint is a software company from Gwalior, India. We build tools that help
+          colleges and companies test programming skills fairly and securely. Our first product
+          is a coding contest and proctored exam platform.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#products">Explore the platform</a>
+          <a class="btn btn-ghost" href="mailto:hello@lintlab.in">Talk to us</a>
+        </div>
+        <ul class="hero-facts">
+          <li><svg><use href="#i-code"/></svg>Python, JavaScript and C++</li>
+          <li><svg><use href="#i-lock"/></svg>Safe Exam Browser support</li>
+          <li><svg><use href="#i-org"/></svg>Built for organizations</li>
+        </ul>
       </div>
-      <div class="step">
-        <span class="n">02</span>
-        <h3>Do</h3>
-        <p>You get practical tasks matched to your level, with honest feedback.</p>
-      </div>
-      <div class="step">
-        <span class="n">03</span>
-        <h3>Get certified</h3>
-        <p>Finish your tasks and get a certificate for your college record.</p>
-      </div>
-      <div class="step">
-        <span class="n">04</span>
-        <h3>Get called in</h3>
-        <p>When paid client work lands, the members who've shown the most get the work —
-          and get paid for it.</p>
-      </div>
-    </div>
 
-    <div class="note">
-      <p class="lbl">▸ straight talk</p>
-      <p>We're at the start. We're still learning, and the honest way we learn is by
-        breaking and fixing our own systems first before we touch anyone else's.</p>
-      <p>We're not a security firm, and we don't pretend to be one. Everything we test is
-        our own hardware, or a system we have written permission to test.</p>
-    </div>
-  </section>
-
-  <section id="join">
-    <p class="eyebrow">// join</p>
-    <h2>Build this with us</h2>
-    <p class="section-lede">We're looking for students who want to go deep on real
-      engineering — security, hardware, AI, full-stack — and help build the studio, not
-      just pass through. If that's you, send a line about what you want to work on.</p>
-    <div class="ctas">
-      <a class="btn primary" href="#contact">▸ Reach out</a>
-      <a class="btn" href="https://www.linkedin.com/company/lint-build" target="_blank" rel="noopener">LinkedIn ↗</a>
-    </div>
-  </section>
-
-  <section id="contact">
-    <p class="eyebrow">// contact</p>
-    <h2>Say hi</h2>
-    <div class="contact">
-      <div class="mail">
-        <span>hello@lintlab.in</span>
-        <button class="copy" id="copyBtn" type="button">copy</button>
-      </div>
-      <div class="links">
-        <a href="https://www.linkedin.com/company/lint-build" target="_blank" rel="noopener">LinkedIn ↗</a>
-        <a href="https://github.com/VaibhavBansa1" target="_blank" rel="noopener">GitHub ↗</a>
-        <a href="https://instagram.com/vaibhav_labs" target="_blank" rel="noopener">Instagram ↗</a>
+      <!-- Illustrative only: a stylised exam window, not real data -->
+      <div class="window" role="img" aria-label="Illustration of a coding exam in the Lint platform: a problem statement beside a code editor, running in a secure session.">
+        <div class="win-bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <span>Exam · Problem 2</span>
+          <span class="lock"><svg><use href="#i-lock"/></svg>Secure session</span>
+        </div>
+        <div class="win-body">
+          <div class="win-q">
+            <b>Problem statement</b>
+            <div class="bar-line" style="width:92%"></div>
+            <div class="bar-line" style="width:78%"></div>
+            <div class="bar-line" style="width:86%"></div>
+            <div class="bar-line" style="width:54%"></div>
+            <div class="bar-line" style="width:70%;margin-top:18px"></div>
+            <div class="bar-line" style="width:40%"></div>
+          </div>
+<div class="win-code"><span class="c"># solution.py</span>
+<span class="k">def</span> solve(nums, k):
+    seen = {}
+    <span class="k">for</span> i, n <span class="k">in</span> enumerate(nums):
+        <span class="k">if</span> k-n <span class="k">in</span> seen:
+            <span class="k">return</span> seen[k-n], i
+        seen[n] = i
+    <span class="k">return</span> -1, -1</div>
+        </div>
+        <div class="win-foot">
+          <span class="chip">Python 3</span>
+          <span class="chip ok">Sandboxed run</span>
+          <span class="chip">Paste rules on</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <footer>
-    <span>&gt; LINT_ · Gwalior, India</span>
-    <span>© 2026 Lint</span>
-  </footer>
+  <!-- Products -->
+  <section class="alt" id="products">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Products</p>
+        <h2>What we build</h2>
+        <p>Lint makes software for education and hiring. We are starting with one focused
+          product and will add more over time.</p>
+      </div>
 
-</div>
+      <div class="products">
+        <article class="product">
+          <div class="product-top">
+            <span class="product-icon"><svg><use href="#i-code"/></svg></span>
+            <div>
+              <p class="label">Product 01</p>
+              <h3>Coding Contest Platform</h3>
+            </div>
+          </div>
+          <p>Run coding contests and proctored coding exams for your college or company.
+            Candidates write and run code in the browser, a secure judge checks it, and you get
+            the results along with integrity signals. A home-grown alternative to tools like
+            HackerRank.</p>
+          <ul class="ticks">
+            <li><svg><use href="#i-check"/></svg>Contests and proctored exams</li>
+            <li><svg><use href="#i-check"/></svg>Sandboxed judge for Python, JavaScript and C++</li>
+            <li><svg><use href="#i-check"/></svg>Departments, roles and guest candidates</li>
+            <li><svg><use href="#i-check"/></svg>Safe Exam Browser support</li>
+            <li><svg><use href="#i-check"/></svg>Paste rules and typing telemetry</li>
+            <li><svg><use href="#i-check"/></svg>About 150 automated security tests</li>
+          </ul>
+          <div class="actions">
+            <a class="btn btn-primary" href="mailto:hello@lintlab.in?subject=Coding%20Contest%20Platform">Ask about the platform</a>
+            <a class="btn btn-ghost" href="#why">See the features</a>
+          </div>
+        </article>
 
-<script>
-  (function(){
-    var btn=document.getElementById('copyBtn');
-    if(!btn)return;
-    btn.addEventListener('click',function(){
-      var text='hello@lintlab.in';
-      function ok(){btn.textContent='copied ✓';setTimeout(function(){btn.textContent='copy';},1600);}
-      try{
-        navigator.clipboard.writeText(text).then(ok).catch(select);
-      }catch(e){select();}
-      function select(){
-        try{
-          var r=document.createRange();var el=btn.previousElementSibling;
-          r.selectNodeContents(el);var s=window.getSelection();
-          s.removeAllRanges();s.addRange(r);ok();
-        }catch(_){}
-      }
-    });
-  })();
-</script>
+        <article class="product soon">
+          <span class="product-icon"><svg><use href="#i-plus"/></svg></span>
+          <h3 style="margin-top:16px">More products on the way</h3>
+          <p>We are working on more tools for colleges and teams. Write to us if there is
+            a problem you would like us to solve.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Lint -->
+  <section id="why">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Why Lint</p>
+        <h2>Built for fair results, from the judge up</h2>
+        <p>An assessment is only useful if you can trust the score. That idea shapes how the
+          platform is designed.</p>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <span class="product-icon"><svg><use href="#i-box"/></svg></span>
+          <h3>Sandboxed judge</h3>
+          <p>Every submission runs in a locked-down container, isolated from the system and from
+            other candidates. Supports Python, JavaScript and C++.</p>
+        </div>
+        <div class="feature">
+          <span class="product-icon"><svg><use href="#i-lock"/></svg></span>
+          <h3>Exam integrity</h3>
+          <p>Works with Safe Exam Browser for locked-down lab exams. Paste rules and typing
+            telemetry help you spot answers that were not written in the exam.</p>
+        </div>
+        <div class="feature">
+          <span class="product-icon"><svg><use href="#i-org"/></svg></span>
+          <h3>Made for organizations</h3>
+          <p>Set up departments and roles so the right people manage the right tests. Invite
+            guest candidates without asking them to create a full account.</p>
+        </div>
+        <div class="feature">
+          <span class="product-icon"><svg><use href="#i-trophy"/></svg></span>
+          <h3>Contests and exams together</h3>
+          <p>Use the same platform for an open practice contest and for a formal, proctored
+            exam. One place for problems, candidates and results.</p>
+        </div>
+        <div class="feature">
+          <span class="product-icon"><svg><use href="#i-test"/></svg></span>
+          <h3>Security-tested</h3>
+          <p>About 150 automated security tests check the platform's defences as it changes,
+            so new features do not quietly open old holes.</p>
+        </div>
+        <div class="feature">
+          <span class="product-icon"><svg><use href="#i-pin"/></svg></span>
+          <h3>Built in India</h3>
+          <p>Designed and built in Gwalior. You talk directly to the people who build the
+            product.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solutions -->
+  <section class="alt" id="solutions">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Solutions</p>
+        <h2>For colleges and for companies</h2>
+        <p>The same platform, set up for the way you test.</p>
+      </div>
+
+      <div class="audiences">
+        <article class="audience" id="colleges">
+          <p class="label">For colleges</p>
+          <h3>Coding exams and contests for your students</h3>
+          <p>Run lab exams, internal assessments and coding contests across departments.</p>
+          <ul>
+            <li><svg><use href="#i-check"/></svg>Organize tests by department, with faculty and admin roles</li>
+            <li><svg><use href="#i-check"/></svg>Lock down lab exams with Safe Exam Browser</li>
+            <li><svg><use href="#i-check"/></svg>Paste rules and typing telemetry to discourage copying</li>
+            <li><svg><use href="#i-check"/></svg>Practice contests to prepare students for placements</li>
+          </ul>
+        </article>
+        <article class="audience" id="companies">
+          <p class="label">For companies</p>
+          <h3>Coding assessments for hiring</h3>
+          <p>Screen candidates with real programming problems before the interview.</p>
+          <ul>
+            <li><svg><use href="#i-check"/></svg>Invite candidates as guests, with no sign-up hassle</li>
+            <li><svg><use href="#i-check"/></svg>Code runs in a secure, sandboxed judge</li>
+            <li><svg><use href="#i-check"/></svg>Integrity signals alongside every score</li>
+            <li><svg><use href="#i-check"/></svg>Roles for your hiring team</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="container about">
+      <div class="about-copy">
+        <p class="eyebrow">About</p>
+        <div class="section-head" style="margin-bottom:24px">
+          <h2>About Lint</h2>
+        </div>
+        <p>Lint is a software company based in Gwalior, India. We build practical, secure
+          software for education and hiring.</p>
+        <p>Our first product is a coding contest and exam platform for colleges and companies.
+          We take security seriously from the start: sandboxed code execution, exam integrity
+          features, and an automated security test suite.</p>
+        <p>Lint is small and founder-led, so you deal directly with the people who build the product.</p>
+        <dl class="facts">
+          <dt>Company</dt><dd>Lint</dd>
+          <dt>Type</dt><dd>Sole proprietorship</dd>
+          <dt>Based in</dt><dd>Gwalior, Madhya Pradesh, India</dd>
+          <dt>Email</dt><dd><a href="mailto:hello@lintlab.in">hello@lintlab.in</a></dd>
+        </dl>
+      </div>
+
+      <aside class="person" aria-label="Founder">
+        <!-- Replace the initials with a photo when available -->
+        <div class="avatar" aria-hidden="true">VB</div>
+        <h3>Vaibhav Bansal</h3>
+        <p class="role">Founder &amp; Owner</p>
+        <p class="bio">Vaibhav founded Lint and leads product and engineering.</p>
+        <div class="social">
+          <a href="https://www.linkedin.com/in/vaibhavbansal3/" target="_blank" rel="noopener" aria-label="Vaibhav Bansal on LinkedIn"><svg><use href="#i-linkedin"/></svg></a>
+          <a href="https://x.com/Vaibhav_labs" target="_blank" rel="noopener" aria-label="Vaibhav Bansal on X"><svg><use href="#i-x"/></svg></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" style="padding-top:0">
+    <div class="container">
+      <div class="cta">
+        <div>
+          <h2>Let's talk</h2>
+          <p>Want to run coding exams or contests with Lint, or have a question about the
+            platform? Send us an email and we will get back to you.</p>
+        </div>
+        <div class="cta-side">
+          <a class="mail" href="mailto:hello@lintlab.in">hello@lintlab.in</a>
+          <a class="btn btn-primary" href="mailto:hello@lintlab.in"><svg style="width:18px;height:18px"><use href="#i-mail"/></svg>Email us</a>
+          <div class="social" aria-label="Social links">
+            <a href="https://www.linkedin.com/in/vaibhavbansal3/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg><use href="#i-linkedin"/></svg></a>
+            <a href="https://x.com/Vaibhav_labs" target="_blank" rel="noopener" aria-label="X"><svg><use href="#i-x"/></svg></a>
+            <a href="https://www.instagram.com/vaibhav_labs/" target="_blank" rel="noopener" aria-label="Instagram"><svg><use href="#i-instagram"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-about">
+        <a class="logo" href="#top" aria-label="Lint home">
+          <svg class="logo-mark" style="color:var(--brand)"><use href="#i-logo"/></svg>
+          Lint
+        </a>
+        <p>Software for fair and secure coding assessments. Gwalior, India.</p>
+      </div>
+      <div>
+        <h4>Products</h4>
+        <ul>
+          <li><a href="#products">Coding Contest Platform</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#solutions">For colleges</a></li>
+          <li><a href="#companies">For companies</a></li>
+          <li><a href="mailto:hello@lintlab.in">hello@lintlab.in</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Follow</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/vaibhavbansal3/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="https://x.com/Vaibhav_labs" target="_blank" rel="noopener">X (Twitter)</a></li>
+          <li><a href="https://www.instagram.com/vaibhav_labs/" target="_blank" rel="noopener">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-base">
+      <span>© 2026 Lint. All rights reserved.</span>
+      <span>Gwalior, Madhya Pradesh, India</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
