@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import company from '../data/company.json';
+
+const topics = ['Security review', 'Firmware / device reverse engineering', 'Secure exam or coding environment', 'System design', 'Pilot the contest platform', 'Lint Lab (students)', 'Something else'];
+---
+<Base
+  title="Contact Lint"
+  description={`Contact Lint, a security R&D lab in ${company.address.city}, ${company.address.region}. Email ${company.email} for security reviews, reverse engineering, secure exam environments or Lint Lab.`}
+  crumbs={[{ name: 'Contact', path: '/contact/' }]}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// contact</p>
+    <h1>Say hi</h1>
+    <p class="lede">Tell us about the system, device or idea. We reply to every real message,
+      usually within two working days.</p>
+    <div class="mail">
+      <span id="mail-text">{company.email}</span>
+      <button class="copy" id="copy-btn" type="button">copy</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="form-h">
+    <h2 id="form-h">Or write it here</h2>
+    <p class="section-lede">This opens a ready-to-send email in your mail app. Nothing is stored on this site.</p>
+    <form class="form" data-mailto={company.email} data-subject="Hello Lint">
+      <div class="field"><label for="c-name">Your name</label><input id="c-name" name="Name" required></div>
+      <div class="field"><label for="c-org">Company or college</label><input id="c-org" name="Organisation"></div>
+      <div class="field">
+        <label for="c-topic">Topic</label>
+        <select id="c-topic" name="Topic">{topics.map((t) => <option>{t}</option>)}</select>
+      </div>
+      <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="Message" rows="6" required></textarea></div>
+      <button class="btn primary" type="submit">▸ Open email</button>
+    </form>
+  </section>
+
+  <section aria-labelledby="where-h">
+    <h2 id="where-h">Where we are</h2>
+    <dl class="facts">
+      <dt>Location</dt><dd>{company.address.locality}, {company.address.city}, {company.address.region} {company.address.postalCode}, {company.address.country}</dd>
+      <dt>Email</dt><dd><a href={`mailto:${company.email}`}>{company.email}</a></dd>
+      <dt>Security reports</dt><dd>See <a href="/.well-known/security.txt">security.txt</a></dd>
+      <dt>Social</dt><dd><a href={company.social.linkedin} rel="noopener" target="_blank">LinkedIn</a> · <a href={company.social.github} rel="noopener" target="_blank">GitHub</a> · <a href={company.social.instagram} rel="noopener" target="_blank">Instagram</a></dd>
+    </dl>
+  </section>
+
+  <script>
+    import '../scripts/mailto-form';
+
+    // Pre-select a topic from ?topic=... links
+    const topic = new URLSearchParams(location.search).get('topic');
+    const select = document.getElementById('c-topic') as HTMLSelectElement | null;
+    if (topic && select) {
+      const match = [...select.options].find((o) => o.text.toLowerCase().startsWith(topic.toLowerCase()));
+      if (match) select.value = match.text;
+    }
+
+    // Copy email button
+    const btn = document.getElementById('copy-btn');
+    btn?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(document.getElementById('mail-text')?.textContent || '');
+        btn.textContent = 'copied ✓';
+        setTimeout(() => (btn.textContent = 'copy'), 1600);
+      } catch {
+        btn.textContent = 'select it';
+      }
+    });
+  </script>
+</Base>

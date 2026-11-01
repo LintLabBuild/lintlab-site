@@ -1,0 +1,69 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import company from '../data/company.json';
+
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+const work = await getCollection('work');
+const titleOf = (id: string) => work.find((w) => w.id === id)?.data.title ?? id;
+
+const rendered = await Promise.all(services.map(async (s) => ({ s, Content: (await render(s)).Content })));
+
+const jsonLd = services.map((s) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: s.data.title,
+  description: s.data.summary,
+  provider: { '@id': `${company.url}/#org` },
+  areaServed: { '@type': 'Country', name: 'India' },
+  url: new URL(`/services/#${s.id}`, company.url).href,
+}));
+---
+<Base
+  title="Cybersecurity services: security reviews and reverse engineering"
+  description="Web application security reviews, firmware reverse engineering, secure exam and coding environments, and secure system design from Lint, a security R&D lab in Gwalior, India."
+  crumbs={[{ name: 'Services', path: '/services/' }]}
+  jsonLd={jsonLd}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// services</p>
+    <h1>Security work, backed by things we built</h1>
+    <p class="lede">We take on a small number of engagements at a time, so each one gets
+      real attention. Every service below links to the project that proves we can do it.</p>
+  </section>
+
+  {rendered.map(({ s, Content }) => (
+    <section id={s.id} aria-labelledby={`${s.id}-h`}>
+      <h2 id={`${s.id}-h`}>{s.data.title}</h2>
+      <p class="section-lede">{s.data.summary}</p>
+      <div class="grid">
+        <div class="prose" style="padding-bottom:0"><Content /></div>
+        <div class="card">
+          <span class="k">what you get</span>
+          <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:14.5px">
+            {s.data.deliverables.map((x) => <li>{x}</li>)}
+          </ul>
+          {s.data.proof.length > 0 && (
+            <p class="small" style="margin-top:8px">proof: {s.data.proof.map((id, i) => <>{i > 0 && ' · '}<a href={`/work/${id}/`}>{titleOf(id)}</a></>)}</p>
+          )}
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <section aria-labelledby="rules-h">
+    <h2 id="rules-h">How we work</h2>
+    <div class="note">
+      <p class="lbl">▸ ground rules</p>
+      <p><strong>Written permission first.</strong> We never test a system without a signed
+        scope from someone who has the right to give it.</p>
+      <p><strong>Honest about our size.</strong> We're a young, Udyam-registered lab of {company.teamSize}.
+        If a job needs a bigger firm, we'll say so.</p>
+      <p><strong>Your findings stay yours.</strong> We don't publish anything about your
+        systems without your agreement.</p>
+    </div>
+    <div class="ctas">
+      <a class="btn primary" href="/contact/?topic=Security%20review">▸ Start a conversation</a>
+    </div>
+  </section>
+</Base>

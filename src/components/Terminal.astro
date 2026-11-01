@@ -1,0 +1,115 @@
+---
+// A small shell on the home page. Its answers come from the same content files
+// as the rest of the site, so it stays up to date on its own.
+import { getCollection } from 'astro:content';
+import company from '../data/company.json';
+import { statusLabel } from '../lib/labels';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+
+const data = {
+  email: company.email,
+  city: `${company.address.city}, ${company.address.region}`,
+  udyam: company.registration.number,
+  work: work.map((w) => ({ id: w.id, title: w.data.title, status: statusLabel[w.data.status], summary: w.data.summary })),
+  services: services.map((s) => ({ title: s.data.title, summary: s.data.summary })),
+};
+---
+<div class="term" data-term={JSON.stringify(data)}>
+  <div class="term-top"><i></i><i></i><i></i><span>guest@lint: ~</span></div>
+  <div class="term-out" role="log" aria-live="polite"></div>
+  <form class="term-in">
+    <label for="term-input">guest@lint:~$</label>
+    <input id="term-input" autocomplete="off" spellcheck="false" placeholder="type help" aria-label="Terminal command">
+  </form>
+</div>
+<p class="term-hint">try: <code>help</code> · <code>ls work</code> · <code>cat router-reverse-engineering</code> · <code>join</code></p>
+
+<script>
+  type Item = { id: string; title: string; status: string; summary: string };
+  const root = document.querySelector<HTMLElement>('.term');
+  if (root) {
+    const data = JSON.parse(root.dataset.term || '{}');
+    const out = root.querySelector('.term-out') as HTMLElement;
+    const input = root.querySelector('input') as HTMLInputElement;
+    const history: string[] = [];
+    let back = 0;
+
+    // Print a line. Text is escaped, then our own [label](url) links are turned into anchors.
+    function print(text: string, cls = '') {
+      const line = document.createElement('div');
+      if (cls) line.className = cls;
+      const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      line.innerHTML = safe.replace(/\[([^\]]+)\]\((\/[^)\s]*|mailto:[^)\s]+)\)/g, '<a href="$2">$1</a>');
+      out.appendChild(line);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    const commands: Record<string, (args: string[]) => void> = {
+      help() {
+        print(`commands:
+  whoami            what Lint is
+  ls work           products and research
+  cat <name>        details on one project
+  services          what we do for companies
+  join              student program (Lint Lab)
+  contact           how to reach us
+  verify            check a Lint certificate
+  clear             clear the screen`);
+      },
+      whoami() {
+        print(`Lint: a security R&D lab in ${data.city}, India.
+We reverse engineer firmware, build secure exam and coding
+environments, and design systems that hold up under attack.
+Our own products are our proof of work.
+Udyam registered · ${data.udyam}`);
+      },
+      ls(args) {
+        if (args[0] && args[0] !== 'work') return print(`ls: ${args[0]}: try "ls work"`, 'err');
+        data.work.forEach((w: Item) => print(`${w.id.padEnd(30)} [${w.status}]`));
+      },
+      cat(args) {
+        const w = data.work.find((x: Item) => x.id === args[0]);
+        if (!w) return print(`cat: ${args[0] || '<name>'}: no such project. try "ls work"`, 'err');
+        print(`${w.title}  [${w.status}]\n${w.summary}\n→ [read more](/work/${w.id}/)`);
+      },
+      services() {
+        data.services.forEach((s: { title: string; summary: string }) => print(`▸ ${s.title}\n  ${s.summary}`));
+        print('→ [all services](/services/)');
+      },
+      join() { print('Curious? Build real security projects with us and earn an experience certificate.\n→ [Lint Lab](/lab/)'); },
+      contact() { print(`→ [${data.email}](mailto:${data.email})  ·  [contact page](/contact/)`); },
+      verify() { print('→ [verify a certificate](/verify/)'); },
+      clear() { out.innerHTML = ''; },
+      sudo() { print('nice try. this incident will be reported (to nobody). we only hack with permission.', 'err'); },
+      exit() { print('there is no exit. only [/contact/](/contact/).'); },
+    };
+    commands.ll = commands.ls;
+    commands.dir = commands.ls;
+    commands.about = commands.whoami;
+
+    function run(line: string) {
+      print(`guest@lint:~$ ${line}`, 'cmd');
+      const [name, ...args] = line.trim().split(/\s+/);
+      if (!name) return;
+      const fn = commands[name.toLowerCase()];
+      fn ? fn(args) : print(`${name}: command not found. type "help"`, 'err');
+    }
+
+    root.querySelector('form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const line = input.value;
+      if (line.trim()) { history.push(line); back = history.length; }
+      input.value = '';
+      run(line);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' && back > 0) { back--; input.value = history[back]; e.preventDefault(); }
+      if (e.key === 'ArrowDown') { back = Math.min(history.length, back + 1); input.value = history[back] ?? ''; }
+    });
+
+    print('Lint shell. type "help" to look around.');
+    run('whoami');
+  }
+</script>

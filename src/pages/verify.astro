@@ -1,0 +1,61 @@
+---
+// Certificate checker. Certificates live in src/data/certificates.json.
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const certs = (await getCollection('certificates')).map((c) => ({ id: c.id.toUpperCase(), ...c.data }));
+---
+<Base
+  title="Verify a Lint certificate"
+  description="Check that a Lint Lab experience certificate is genuine by entering its certificate ID."
+  noindex
+  crumbs={[{ name: 'Verify', path: '/verify/' }]}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// verify</p>
+    <h1>Verify a certificate</h1>
+    <p class="lede">Every Lint experience certificate has an ID like <code>LINT-2026-001</code>.
+      Enter it below to check it's genuine.</p>
+    <form class="form" id="verify-form" data-certs={JSON.stringify(certs)}>
+      <div class="field"><label for="cert-id">Certificate ID</label><input id="cert-id" required placeholder="LINT-2026-001" autocomplete="off"></div>
+      <button class="btn primary" type="submit">▸ Check</button>
+    </form>
+    <div id="verify-result" class="note" hidden role="status"></div>
+  </section>
+
+  <script>
+    const form = document.getElementById('verify-form') as HTMLFormElement;
+    const result = document.getElementById('verify-result') as HTMLElement;
+    const certs = JSON.parse(form.dataset.certs || '[]');
+
+    function check(id: string) {
+      const cert = certs.find((c: { id: string }) => c.id === id.trim().toUpperCase());
+      result.hidden = false;
+      result.textContent = '';
+      const add = (text: string, cls = '') => { const p = document.createElement('p'); p.textContent = text; if (cls) p.className = cls; result.appendChild(p); };
+      if (cert) {
+        result.style.borderLeftColor = 'var(--accent)';
+        add('✓ genuine certificate', 'lbl');
+        add(`${cert.name} completed the ${cert.program} at Lint, working on ${cert.project}, from ${cert.from} to ${cert.to}.`);
+      } else {
+        result.style.borderLeftColor = 'var(--red)';
+        add('✗ not found', 'lbl');
+        add('We have no certificate with that ID. Check for typos, or email us and we will confirm by hand.');
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = (document.getElementById('cert-id') as HTMLInputElement).value;
+      history.replaceState(null, '', `?id=${encodeURIComponent(id.trim())}`);
+      check(id);
+    });
+
+    // Support links like /verify/?id=LINT-2026-001 (printed as a QR code on the certificate)
+    const fromUrl = new URLSearchParams(location.search).get('id');
+    if (fromUrl) {
+      (document.getElementById('cert-id') as HTMLInputElement).value = fromUrl;
+      check(fromUrl);
+    }
+  </script>
+</Base>

@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" description="This page doesn't exist on lintlab.in." noindex>
+  <section class="hero">
+    <p class="prompt"><span class="g">guest@lint</span>:~$ cd {'<this page>'}</p>
+    <h1>404: <span class="u">no such file</span><br>or directory</h1>
+    <p class="lede">The page you asked for isn't here. Maybe it moved, maybe it never existed.</p>
+    <div class="ctas">
+      <a class="btn primary" href="/">▸ cd ~</a>
+      <a class="btn" href="/work/">ls work</a>
+      <a class="btn" href="/contact/">contact</a>
+    </div>
+  </section>
+</Base>

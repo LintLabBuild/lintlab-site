@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WorkCard from '../../components/WorkCard.astro';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const products = work.filter((w) => w.data.status !== 'research');
+const research = work.filter((w) => w.data.status === 'research');
+---
+<Base
+  title="Work: security products and research"
+  description="Products and research from Lint: a secure coding contest platform, the SecureCode assessment tool, router firmware reverse engineering, and connectome-driven robotics."
+  crumbs={[{ name: 'Work', path: '/work/' }]}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// work</p>
+    <h1>Our proof of work</h1>
+    <p class="lede">Everything here is something we're actually building. Each card says
+      honestly whether it's live, a prototype, in progress or research.</p>
+  </section>
+
+  <section aria-labelledby="products-h">
+    <h2 id="products-h">Products and engineering</h2>
+    <div class="grid three">{products.map((item) => <WorkCard item={item} />)}</div>
+  </section>
+
+  {research.length > 0 && (
+    <section aria-labelledby="research-h">
+      <h2 id="research-h">Research</h2>
+      <div class="grid">{research.map((item) => <WorkCard item={item} />)}</div>
+    </section>
+  )}
+</Base>

@@ -1,0 +1,51 @@
+---
+import Base from '../layouts/Base.astro';
+import company from '../data/company.json';
+import { formatDate } from '../lib/labels';
+
+const reg = company.registration;
+---
+<Base
+  title="About Lint: a registered security R&D lab"
+  description={`About Lint: an Udyam-registered security R&D company in ${company.address.city}, India, founded in 2026 by ${company.founder.name}. Who we are, how we work and how to verify us.`}
+  crumbs={[{ name: 'About', path: '/about/' }]}
+>
+  <section class="page-hero">
+    <p class="eyebrow">// about</p>
+    <h1>A small lab that goes deep</h1>
+    <p class="lede">Lint is a research and development company for cybersecurity. We work on
+      reverse engineering, secure environments, secure coding platforms and systems that
+      scale. We started in {company.address.city} in 2026.</p>
+  </section>
+
+  <section aria-labelledby="model-h">
+    <h2 id="model-h">How Lint works</h2>
+    <div class="grid three">
+      <div class="card"><span class="k">01 · build</span><h3>Our own products</h3><p>We build and attack our own platforms and devices first. That is how we learn where systems really break.</p></div>
+      <div class="card"><span class="k">02 · serve</span><h3>Security for companies</h3><p>Those products are our proof of work when we offer reviews, reverse engineering and secure environments to clients.</p></div>
+      <div class="card"><span class="k">03 · grow</span><h3>Students with the spark</h3><p>Curious students build with us in Lint Lab, earn a certificate, and join the team when paid work lands.</p></div>
+    </div>
+    <div class="note">
+      <p class="lbl">▸ straight talk</p>
+      <p>We're at the start. We don't have a long client list and we won't pretend otherwise.
+        What we do have is real work you can inspect.</p>
+      <p>Everything we test is our own hardware or software, or a system we have written
+        permission to test.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="facts-h">
+    <h2 id="facts-h">Company facts</h2>
+    <dl class="facts">
+      <dt>Name</dt><dd>{company.name}</dd>
+      <dt>Founder</dt><dd>{company.founder.name}</dd>
+      <dt>Founded</dt><dd>{formatDate(new Date(company.founded))}</dd>
+      <dt>Registration</dt><dd>{reg.type}, {reg.authority}</dd>
+      <dt>Udyam number</dt><dd><code>{reg.number}</code> · <a href={reg.verifyUrl} rel="noopener" target="_blank">verify on udyamregistration.gov.in ↗</a></dd>
+      <dt>Organisation</dt><dd>{reg.organisation}</dd>
+      <dt>Activity (NIC)</dt><dd>{reg.nic}</dd>
+      <dt>Location</dt><dd>{company.address.locality}, {company.address.city}, {company.address.region} {company.address.postalCode}, {company.address.country}</dd>
+      <dt>Contact</dt><dd><a href={`mailto:${company.email}`}>{company.email}</a></dd>
+    </dl>
+  </section>
+</Base>
