@@ -33,29 +33,35 @@ const icon = (size) => `
 
 // The owner's logo (public/brand/lint-logo.png), trimmed to the wordmark.
 const LOGO = 'public/brand/lint-logo.png';
-const BG = { r: 15, g: 15, b: 15, alpha: 1 };
 const wordmark = await sharp(LOGO).trim({ threshold: 20 }).png().toBuffer();
 
 // Header/footer wordmark: white letters on a transparent background.
 // The logo's brightness becomes the alpha channel, so it sits on any dark colour.
-const { data: alpha, info } = await sharp(wordmark).resize({ height: 96 }).greyscale().raw().toBuffer({ resolveWithObject: true });
+// The logo's "black" is really #0f0f0f, so stretch the levels to make that fully transparent.
+const { data: alpha, info } = await sharp(wordmark).resize({ height: 96 }).greyscale()
+  .linear(255 / 225, -30 * (255 / 225)).raw().toBuffer({ resolveWithObject: true });
 await sharp({ create: { width: info.width, height: info.height, channels: 3, background: '#ffffff' } })
   .joinChannel(alpha, { raw: { width: info.width, height: info.height, channels: 1 } })
   .png().toFile('public/brand/lint-wordmark.png');
 
-// Share image: the text design above, with the real logo bottom-left
-const ogLogo = await sharp(wordmark).resize({ height: 64 }).png().toBuffer();
+// Share image: the text design above, with the transparent logo bottom-left (no box behind it)
+const ogLogo = await sharp('public/brand/lint-wordmark.png').resize({ height: 64 }).png().toBuffer();
 await sharp(Buffer.from(og.replace(/<text x="80" y="570"[^]*?<\/text>/, '')))
   .composite([{ input: ogLogo, left: 80, top: 528 }])
   .png().toFile('public/og.png');
 
-// App icons: the wordmark centred on a square with some breathing room
-for (const [name, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['apple-touch-icon.png', 180]]) {
-  const inner = await sharp(wordmark).resize({ width: Math.round(size * 0.78) }).png().toBuffer();
-  await sharp({ create: { width: size, height: size, channels: 4, background: BG } })
-    .composite([{ input: inner, gravity: 'centre' }])
+// App icons: the whole logo, uncropped, with rounded corners
+function roundedMask(size) {
+  const r = Math.round(size * 0.18);
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${r}" ry="${r}"/></svg>`);
+}
+for (const [name, size] of [['icon-192.png', 192], ['icon-512.png', 512]]) {
+  await sharp(LOGO).resize(size, size)
+    .composite([{ input: roundedMask(size), blend: 'dest-in' }])
     .png().toFile(`public/${name}`);
 }
+// iPhones round the corners themselves and fill transparent corners with black, so keep this one square
+await sharp(LOGO).resize(180, 180).png().toFile('public/apple-touch-icon.png');
 // favicon.ico: a 32x32 PNG wrapped in a minimal ICO header
 const png = await sharp(Buffer.from(icon(32))).png().toBuffer();
 const header = Buffer.alloc(22);
